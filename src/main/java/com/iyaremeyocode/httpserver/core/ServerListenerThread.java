@@ -1,5 +1,9 @@
 package com.iyaremeyocode.httpserver.core;
 
+import com.iyaremeyocode.httpserver.HttpServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -7,6 +11,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ServerListenerThread extends Thread {
+    private final static Logger LOGGER = LoggerFactory.getLogger(ServerListenerThread.class);
 
     private int port;
     private String webroot;
@@ -21,31 +26,24 @@ public class ServerListenerThread extends Thread {
     @Override
     public void run() {
         try {
-            Socket socket = serverSocket.accept();
 
-            InputStream inputStream = socket.getInputStream();
+            while (serverSocket.isBound() && !serverSocket.isClosed())  {
+                Socket socket = serverSocket.accept();
+                LOGGER.info(" *Connection accepted: " + socket.getInetAddress());
+                HttpConnectionWorkerThread httpConnectionWorkerThread = new HttpConnectionWorkerThread(socket);
+                httpConnectionWorkerThread.start();
+            }
 
-            OutputStream outputStream = socket.getOutputStream();
-
-            String html = "<html><head> <title>Simple Java Http Server</title> </head><body><h1>This page was served using my Simple Java HTTP Server</h1></body></html>";
-
-            final String CRLF = "\n\r";
-
-            String response =
-                    "HTTP/1.1 200 OK" + CRLF +
-                            "Content-length: " + html.getBytes().length + CRLF +
-                            CRLF +
-                            html +
-                            CRLF + CRLF;
-
-            outputStream.write(response.getBytes());
-
-            inputStream.close();
-            outputStream.close();
-            socket.close();
-            serverSocket.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            if(serverSocket != null){
+                try {
+                    serverSocket.close();
+                } catch (IOException e) {
+                    LOGGER.error("Problem with setting socket", e);
+                }
+            }
         }
     }
 }
