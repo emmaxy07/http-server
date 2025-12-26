@@ -1,0 +1,35 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Installing Java 23 (Amazon Corretto) ..."
+      # Amazon Linux 2 images usually use yum; Amazon Linux 2023 images use dnf.
+      - (sudo dnf -y install java-23-amazon-corretto-devel || sudo yum -y install java-23-amazon-corretto-devel)
+      # Make Java 23 the default (paths may vary slightly; this works on most Corretto installs)
+      - sudo alternatives --set java  /usr/lib/jvm/java-23-amazon-corretto.x86_64/bin/java  || true
+      - sudo alternatives --set javac /usr/lib/jvm/java-23-amazon-corretto.x86_64/bin/javac || true
+      - java -version
+      - mvn -version
+
+  pre_build:
+    commands:
+      - echo "Fetching CodeArtifact token..."
+      - export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain nextwork --domain-owner 040544895999 --region us-east-2 --query authorizationToken --output text)
+      - test -n "$CODEARTIFACT_AUTH_TOKEN" || (echo "ERROR: CodeArtifact token not set" && exit 1)
+
+  build:
+    commands:
+      - echo "Build started on $(date)"
+      - mvn -s settings.xml -U clean install
+
+  post_build:
+    commands:
+      - echo "Build completed on $(date)"
+      - echo "Packaging artifacts..."
+      - mvn -s settings.xml -U package
+
+artifacts:
+  files:
+    - target/*.war
+  discard-paths: no
