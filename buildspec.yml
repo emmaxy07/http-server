@@ -1,0 +1,29 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto23
+    commands:
+      - echo "Install/verify tools"
+      - yum -y install maven || true
+      - java -version
+      - mvn -version
+
+  pre_build:
+    commands:
+      - echo "Getting CodeArtifact auth token"
+      - export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain httpserver --domain-owner 040544895999 --region us-east-2 --query authorizationToken --output text)
+
+  build:
+    commands:
+      - echo "Build started on $(date)"
+      - mvn -s settings.xml -U clean compile
+
+  post_build:
+    commands:
+      - echo "Build completed on $(date)"
+
+artifacts:
+  files:
+    - target/**/*
