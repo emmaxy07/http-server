@@ -29,7 +29,9 @@ class HttpParserTest {
             fail(e);
         }
 
+        assertNotNull(httpRequest);
         assertEquals(httpRequest.getMethod(), HttpMethod.GET);
+        assertEquals(httpRequest.getRequestTarget(), "/");
     }
 
     @Test
@@ -73,6 +75,18 @@ class HttpParserTest {
 
         try {
             HttpRequest httpRequest = httpParser.parseHttpRequest(generateBadTestCaseEmptyRequestLine());
+            fail();
+        } catch (HttpParsingException e) {
+            assertEquals(e.getErrorCode(), HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+        }
+
+    }
+
+    @Test
+    void parseHttpEmptyRequestLiNECRnoLF() {
+
+        try {
+            HttpRequest httpRequest = httpParser.parseHttpRequest(generateBadTestCaseRequestLineOnlyCRnoLF());
             fail();
         } catch (HttpParsingException e) {
             assertEquals(e.getErrorCode(), HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
@@ -136,6 +150,20 @@ class HttpParserTest {
 
     private InputStream generateBadTestCaseRequestLineInvalidNumOfItems(){
         String rawData = "GET AAA / HTTP/1.1\r\n" +
+                "Host: localhost:8080\r\n" +
+                "Accept-Encoding: gzip, deflate, br, zstd\r\n" +
+                "Accept-Language: en-US,en;q=0.9\r\n" +
+                "\r\n";
+
+        InputStream inputStream = new ByteArrayInputStream(
+                rawData.getBytes(StandardCharsets.US_ASCII)
+        );
+
+        return inputStream;
+    }
+
+    private InputStream generateBadTestCaseRequestLineOnlyCRnoLF(){
+        String rawData = "GET / HTTP/1.1\r" + //  <---- NO LF
                 "Host: localhost:8080\r\n" +
                 "Accept-Encoding: gzip, deflate, br, zstd\r\n" +
                 "Accept-Language: en-US,en;q=0.9\r\n" +

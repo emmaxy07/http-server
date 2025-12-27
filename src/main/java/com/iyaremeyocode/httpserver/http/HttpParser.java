@@ -44,7 +44,12 @@ public class HttpParser {
             if(_byte == CR){
                 _byte = inputStreamReader.read();
                 if(_byte == LF){
+                    if(!methodParsed || !requestTargetParsed){
+                        throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+                    }
                     return;
+                } else {
+                    throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
                 }
         }
         if(_byte == SP){
@@ -54,6 +59,7 @@ public class HttpParser {
                 methodParsed = true;
             } else if (!requestTargetParsed) {
                 LOGGER.debug("Request line REQUEST TARGET to process: {}", stringBuilder.toString());
+                httpRequest.setRequestTarget(stringBuilder.toString());
                 requestTargetParsed = true;
             } else {
                 throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);

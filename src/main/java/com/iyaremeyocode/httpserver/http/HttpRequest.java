@@ -24,4 +24,15 @@ public class HttpRequest extends HttpMessage {
                 HttpStatusCode.SERVER_ERROR_501_NOT_IMPLEMENTED
         );
     }
+
+    public String getRequestTarget() {
+        return requestTarget;
+    }
+
+    void setRequestTarget(String requestTarget) throws HttpParsingException {
+        if(requestTarget == null || requestTarget.isEmpty()){
+            throw new HttpParsingException(HttpStatusCode.SERVER_ERROR_500_INTERNAL_SERVER_ERROR);
+        }
+        this.requestTarget = requestTarget;
+    }
 }
