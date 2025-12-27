@@ -47,10 +47,15 @@ public class HttpParser {
                     if(!methodParsed || !requestTargetParsed){
                         throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
                     }
-                    return;
+                    try {
+                        httpRequest.setOriginalHttpVersion(stringBuilder.toString());
+                    } catch (BadHttpVersionException e) {
+                        throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+                    }
                 } else {
                     throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
                 }
+
         }
         if(_byte == SP){
             if(!methodParsed){
