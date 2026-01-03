@@ -89,34 +89,46 @@ public class HttpParser {
             }
     }
 
-    int _byte;
+    enum State {
+        NAME,
+        VALUE
+    }
+
     public void parseHeaders(InputStreamReader inputStreamReader, HttpRequest httpRequest) throws IOException {
-        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder stringBuilderHeaderName = new StringBuilder();
+        StringBuilder stringBuilderHeaderValue = new StringBuilder();
+        StringBuilder a;
+        StringBuilder b;
+
         String headerName = "";
         String headerValue = "";
         HashMap<String, String> headers = new HashMap<>();
-        boolean headerNameParsed = false;
-        boolean headerValueParsed = false;
+        State state = State.NAME;
 
         int i;
         while((i = inputStreamReader.read()) >= 0){
-           StringBuilder a = stringBuilder.append((char) i);
-            if(i == COLON && !headerNameParsed){
+            if(state == State.NAME){
+                if(i == COLON){
+                    state = State.VALUE;
+                    continue;
+                }
+                a = stringBuilderHeaderName.append((char) i);
                 headerName = String.valueOf(a);
-                headerNameParsed = true;
-                stringBuilder.delete(0, stringBuilder.length());
             }
-            StringBuilder b = stringBuilder.append((char) i);
-            if (i == CR && !headerValueParsed) {
+            stringBuilderHeaderName.delete(0, stringBuilderHeaderName.length());
+
+            if(state == State.VALUE){
+                if(i == CR){
+                    int nextByte = inputStreamReader.read();
+                    if(nextByte == LF){
+                        break;
+                    }
+                }
+                b = stringBuilderHeaderValue.append((char) i);
                 headerValue = String.valueOf(b);
-                headerValueParsed = true;
-                stringBuilder.delete(0, stringBuilder.length());
-            } else if (i == LF && headerNameParsed && headerValueParsed) {
-                headerNameParsed = false;
-                headerValueParsed = false;
-                headers.put(headerName, headerValue);
-                break;
             }
+            headers.put(headerName, headerValue);
+            stringBuilderHeaderValue.delete(0, stringBuilderHeaderValue.length());
         }
     }
 
