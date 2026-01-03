@@ -98,23 +98,25 @@ public class HttpParser {
         boolean headerNameParsed = false;
         boolean headerValueParsed = false;
 
-        while ((_byte = inputStreamReader.read()) >= 0){
-            if(_byte == COLON){
-                headerName = String.valueOf(stringBuilder.append((char) _byte));
+        for(int i = 0; i < inputStreamReader.read(); i++){
+           StringBuilder a = stringBuilder.append((char) i);
+            if(i == COLON && !headerNameParsed){
+                headerName = String.valueOf(a);
                 headerNameParsed = true;
                 stringBuilder.delete(0, stringBuilder.length());
-            } else if (_byte == CR) {
-                _byte = inputStreamReader.read();
-                if(_byte == LF){
-                    headerValue = String.valueOf(stringBuilder.append((char) _byte));
-                    headerValueParsed = true;
-                    stringBuilder.delete(0, stringBuilder.length());
-                }
             }
-            headerNameParsed = false;
-            headerValueParsed = false;
+            StringBuilder b = stringBuilder.append((char) i);
+            if (i == CR && !headerValueParsed) {
+                headerValue = String.valueOf(b);
+                headerValueParsed = true;
+                stringBuilder.delete(0, stringBuilder.length());
+            } else if (i == LF && headerNameParsed && headerValueParsed) {
+                headerNameParsed = false;
+                headerValueParsed = false;
+                headers.put(headerName, headerValue);
+                break;
+            }
         }
-        headers.put(headerName, headerValue);
     }
 
     public void parseBody(InputStreamReader inputStreamReader, HttpRequest httpRequest){
