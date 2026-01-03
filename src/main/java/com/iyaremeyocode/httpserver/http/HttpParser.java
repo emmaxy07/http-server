@@ -98,7 +98,8 @@ public class HttpParser {
         boolean headerNameParsed = false;
         boolean headerValueParsed = false;
 
-        for(int i = 0; i < inputStreamReader.read(); i++){
+        int i;
+        while((i = inputStreamReader.read()) >= 0){
            StringBuilder a = stringBuilder.append((char) i);
             if(i == COLON && !headerNameParsed){
                 headerName = String.valueOf(a);
