@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HttpParser {
 
@@ -15,6 +17,7 @@ public class HttpParser {
     private static final int SP = 0x20; // 32
     private static final int CR = 0x0D; // 13
     private static final int LF = 0x0A; // 10
+    private static final int COLON = 0x3A; // 58
 
 
     public HttpRequest parseHttpRequest(InputStream inputStream) throws HttpParsingException {
@@ -27,7 +30,11 @@ public class HttpParser {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        parseHeaders(inputStreamReader, httpRequest);
+        try {
+            parseHeaders(inputStreamReader, httpRequest);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         parseBody(inputStreamReader, httpRequest);
 
         return httpRequest;
@@ -82,8 +89,32 @@ public class HttpParser {
             }
     }
 
-    public void parseHeaders(InputStreamReader inputStreamReader, HttpRequest httpRequest){
+    int _byte;
+    public void parseHeaders(InputStreamReader inputStreamReader, HttpRequest httpRequest) throws IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+        String headerName = "";
+        String headerValue = "";
+        HashMap<String, String> headers = new HashMap<>();
+        boolean headerNameParsed = false;
+        boolean headerValueParsed = false;
 
+        while ((_byte = inputStreamReader.read()) >= 0){
+            if(_byte == COLON){
+                headerName = String.valueOf(stringBuilder.append((char) _byte));
+                headerNameParsed = true;
+                stringBuilder.delete(0, stringBuilder.length());
+            } else if (_byte == CR) {
+                _byte = inputStreamReader.read();
+                if(_byte == LF){
+                    headerValue = String.valueOf(stringBuilder.append((char) _byte));
+                    headerValueParsed = true;
+                    stringBuilder.delete(0, stringBuilder.length());
+                }
+            }
+            headerNameParsed = false;
+            headerValueParsed = false;
+        }
+        headers.put(headerName, headerValue);
     }
 
     public void parseBody(InputStreamReader inputStreamReader, HttpRequest httpRequest){
