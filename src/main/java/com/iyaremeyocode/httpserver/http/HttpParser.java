@@ -100,9 +100,8 @@ public class HttpParser {
         StringBuilder a;
         StringBuilder b;
 
-        String headerName = "";
-        String headerValue = "";
         HashMap<String, String> headers = new HashMap<>();
+        boolean seenCR = false;
         State state = State.NAME;
 
         int i;
@@ -111,25 +110,28 @@ public class HttpParser {
                 if(i == COLON){
                     state = State.VALUE;
                     continue;
+                } else if(i == CR){
+                    seenCR = true;
+                } else if (i != LF) {
+                    stringBuilderHeaderName.append((char) i);
+                    seenCR = false;
                 }
-                a = stringBuilderHeaderName.append((char) i);
-                headerName = String.valueOf(a);
-            }
-            stringBuilderHeaderName.delete(0, stringBuilderHeaderName.length());
-
-            if(state == State.VALUE){
+            } else if(state == State.VALUE){
                 if(i == CR){
-                    int nextByte = inputStreamReader.read();
-                    if(nextByte == LF){
-                        break;
-                    }
+                    seenCR = true;
+                } else if (seenCR && i == LF) {
+                    headers.put(stringBuilderHeaderName.toString().trim(), stringBuilderHeaderValue.toString().trim());
+                stringBuilderHeaderName.setLength(0);
+                stringBuilderHeaderValue.setLength(0);
+                state = State.NAME;
+                } else {
+                    stringBuilderHeaderValue.append((char) i);
+                    seenCR = false;
                 }
-                b = stringBuilderHeaderValue.append((char) i);
-                headerValue = String.valueOf(b);
             }
-            headers.put(headerName, headerValue);
-            stringBuilderHeaderValue.delete(0, stringBuilderHeaderValue.length());
         }
+
+
     }
 
     public void parseBody(InputStreamReader inputStreamReader, HttpRequest httpRequest){
