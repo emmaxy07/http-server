@@ -1,6 +1,7 @@
 package com.iyaremeyocode.httpserver.http;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class HttpRequest extends HttpMessage {
     private HttpMethod method;
@@ -8,6 +9,7 @@ public class HttpRequest extends HttpMessage {
     private String originalHttpVersion;
     private HttpVersion bestCompatibleHttpVersion;
     private HashMap<String, String> headers;
+
 
 
     HttpRequest(){
@@ -28,6 +30,10 @@ public class HttpRequest extends HttpMessage {
 
     public String getOriginalHttpVersion() {
         return originalHttpVersion;
+    }
+
+    public HashMap<String, String> getHeaders(){
+        return new HashMap<>(headers);
     }
 
     void setMethod(String httpMethodName) throws HttpParsingException {
@@ -61,8 +67,10 @@ public class HttpRequest extends HttpMessage {
 
     void setHeaders(HashMap<String, String> headers) throws HttpParsingException{
         this.headers = headers;
-//        if(this.headers == null){
-//
-//        }
+        if(this.headers == null){
+            throw new HttpParsingException(
+                    HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST
+            );
+        }
     }
 }
