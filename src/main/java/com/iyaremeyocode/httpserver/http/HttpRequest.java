@@ -1,10 +1,14 @@
 package com.iyaremeyocode.httpserver.http;
 
+import java.util.HashMap;
+
 public class HttpRequest extends HttpMessage {
     private HttpMethod method;
     private String requestTarget;
     private String originalHttpVersion;
     private HttpVersion bestCompatibleHttpVersion;
+    private HashMap<String, String> headers;
+
 
     HttpRequest(){
 
@@ -53,5 +57,12 @@ public class HttpRequest extends HttpMessage {
                     HttpStatusCode.SERVER_ERROR_505_HTTP_VERSION_NOT_SUPPORTED
             );
         }
+    }
+
+    void setHeaders(HashMap<String, String> headers) throws HttpParsingException{
+        this.headers = headers;
+//        if(this.headers == null){
+//
+//        }
     }
 }

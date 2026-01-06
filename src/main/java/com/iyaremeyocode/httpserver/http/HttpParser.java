@@ -94,7 +94,7 @@ public class HttpParser {
         VALUE
     }
 
-    public void parseHeaders(InputStreamReader inputStreamReader, HttpRequest httpRequest) throws IOException {
+    public void parseHeaders(InputStreamReader inputStreamReader, HttpRequest httpRequest) throws IOException, HttpParsingException {
         StringBuilder stringBuilderHeaderName = new StringBuilder();
         StringBuilder stringBuilderHeaderValue = new StringBuilder();
         StringBuilder a;
@@ -106,10 +106,13 @@ public class HttpParser {
 
         int i;
         while((i = inputStreamReader.read()) >= 0){
+            if(seenCR && i == LF && state == State.NAME && stringBuilderHeaderName.length() == 0){
+                break;
+            }
+
             if(state == State.NAME){
                 if(i == COLON){
                     state = State.VALUE;
-                    continue;
                 } else if(i == CR){
                     seenCR = true;
                 } else if (i != LF) {
@@ -130,8 +133,7 @@ public class HttpParser {
                 }
             }
         }
-
-
+        httpRequest.setHeaders(headers);
     }
 
     public void parseBody(InputStreamReader inputStreamReader, HttpRequest httpRequest){
