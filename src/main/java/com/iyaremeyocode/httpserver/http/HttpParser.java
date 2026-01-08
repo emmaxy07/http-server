@@ -18,6 +18,7 @@ public class HttpParser {
     private static final int CR = 0x0D; // 13
     private static final int LF = 0x0A; // 10
     private static final int COLON = 0x3A; // 58
+    HashMap<String, String> headers = new HashMap<>();
 
 
     public HttpRequest parseHttpRequest(InputStream inputStream) throws HttpParsingException {
@@ -28,14 +29,23 @@ public class HttpParser {
         try {
             parseRequestLine(inputStreamReader, httpRequest);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
         }
+
         try {
-            parseHeaders(inputStreamReader, httpRequest);
+            parseHeaders(inputStreamReader, httpRequest) ;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
         }
-        parseBody(inputStreamReader, httpRequest);
+        String contentLength = headers.get("Content-Length");
+        if(contentLength != null){
+            try {
+                parseBody(inputStreamReader, httpRequest);
+            } catch (Exception e) {
+                throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+            }
+        } else {
+        }
 
         return httpRequest;
     }
@@ -97,10 +107,6 @@ public class HttpParser {
     public void parseHeaders(InputStreamReader inputStreamReader, HttpRequest httpRequest) throws IOException, HttpParsingException {
         StringBuilder stringBuilderHeaderName = new StringBuilder();
         StringBuilder stringBuilderHeaderValue = new StringBuilder();
-        StringBuilder a;
-        StringBuilder b;
-
-        HashMap<String, String> headers = new HashMap<>();
         boolean seenCR = false;
         State state = State.NAME;
 
