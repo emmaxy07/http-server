@@ -142,7 +142,14 @@ public class HttpParser {
         httpRequest.setHeaders(headers);
     }
 
-    public void parseBody(InputStreamReader inputStreamReader, HttpRequest httpRequest){
+    public void parseBody(InputStreamReader inputStreamReader, HttpRequest httpRequest) throws IOException {
+        String contentLength = headers.get("Content-Length");
+        int parsedContentLengthValue = Integer.parseInt(contentLength);
+        byte[] byteArray = new byte[parsedContentLengthValue];
 
+        int i;
+        while((i = inputStreamReader.read()) >= 0) {
+
+        }
     }
 }
