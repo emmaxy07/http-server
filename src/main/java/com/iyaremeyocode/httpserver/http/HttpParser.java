@@ -106,7 +106,7 @@ public class HttpParser {
 
         int i;
         while((i = inputStreamReader.read()) >= 0){
-            if(seenCR && i == LF && state == State.NAME && stringBuilderHeaderName.length() == 0){
+            if(seenCR && i == LF && state == State.NAME && stringBuilderHeaderName.isEmpty()){
                 break;
             }
 
