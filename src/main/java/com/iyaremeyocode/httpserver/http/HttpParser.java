@@ -3,6 +3,7 @@ package com.iyaremeyocode.httpserver.http;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,7 +41,7 @@ public class HttpParser {
         String contentLength = headers.get("Content-Length");
         if(contentLength != null){
             try {
-                parseBody(inputStreamReader, httpRequest);
+                parseBody(inputStream, httpRequest);
             } catch (Exception e) {
                 throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
             }
@@ -142,14 +143,20 @@ public class HttpParser {
         httpRequest.setHeaders(headers);
     }
 
-    public void parseBody(InputStreamReader inputStreamReader, HttpRequest httpRequest) throws IOException {
+    public void parseBody(InputStream inputStream, HttpRequest httpRequest) throws IOException {
         String contentLength = headers.get("Content-Length");
         int parsedContentLengthValue = Integer.parseInt(contentLength);
         byte[] byteArray = new byte[parsedContentLengthValue];
 
-        int i;
-        while((i = inputStreamReader.read()) >= 0) {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
+        int j;
+        for(int i = 0; i < parsedContentLengthValue; i++){
+            if((j = inputStream.read(byteArray, 0, byteArray.length)) != -1){
+                buffer.write(byteArray, 0, j);
+            }
         }
+
+        httpRequest.setRequestBody(buffer.toByteArray());
     }
 }

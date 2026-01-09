@@ -9,7 +9,7 @@ public class HttpRequest extends HttpMessage {
     private String originalHttpVersion;
     private HttpVersion bestCompatibleHttpVersion;
     private HashMap<String, String> headers;
-
+    private byte[] requestBody;
 
 
     HttpRequest(){
@@ -34,6 +34,10 @@ public class HttpRequest extends HttpMessage {
 
     public HashMap<String, String> getHeaders(){
         return new HashMap<>(headers);
+    }
+
+    public byte[] getRequestBody() {
+        return requestBody;
     }
 
     void setMethod(String httpMethodName) throws HttpParsingException {
@@ -72,5 +76,9 @@ public class HttpRequest extends HttpMessage {
                     HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST
             );
         }
+    }
+
+    public void setRequestBody(byte[] requestBody) {
+        this.requestBody = requestBody;
     }
 }
