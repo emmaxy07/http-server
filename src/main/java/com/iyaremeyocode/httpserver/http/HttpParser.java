@@ -145,16 +145,27 @@ public class HttpParser {
 
     public void parseBody(InputStream inputStream, HttpRequest httpRequest) throws IOException {
         String contentLength = headers.get("Content-Length");
+        if(contentLength == null){
+            return;
+        }
+
         int parsedContentLengthValue = Integer.parseInt(contentLength);
-        byte[] byteArray = new byte[parsedContentLengthValue];
+        byte[] byteArray = new byte[Math.min(8192, parsedContentLengthValue)];
 
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
+        int totalBytesRead = 0;
         int j;
-        for(int i = 0; i < parsedContentLengthValue; i++){
-            if((j = inputStream.read(byteArray, 0, byteArray.length)) != -1){
-                buffer.write(byteArray, 0, j);
+        while (totalBytesRead < parsedContentLengthValue){
+            int remainingBytesToBeRead = parsedContentLengthValue - totalBytesRead;
+             j = inputStream.read(byteArray, 0, Math.min(byteArray.length, remainingBytesToBeRead));
+
+            if(j == -1){
+                break;
             }
+
+            buffer.write(byteArray, 0, j);
+            totalBytesRead += j;
         }
 
         httpRequest.setRequestBody(buffer.toByteArray());
