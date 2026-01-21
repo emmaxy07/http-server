@@ -45,9 +45,7 @@ public class HttpParser {
             } catch (Exception e) {
                 throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
             }
-        } else {
         }
-
         return httpRequest;
     }
 
@@ -143,7 +141,7 @@ public class HttpParser {
         httpRequest.setHeaders(headers);
     }
 
-    public void parseBody(InputStream inputStream, HttpRequest httpRequest) throws IOException {
+    public void parseBody(InputStream inputStream, HttpRequest httpRequest) throws IOException, HttpParsingException {
         String contentLength = headers.get("Content-Length");
         if(contentLength == null){
             return;
@@ -161,7 +159,7 @@ public class HttpParser {
              j = inputStream.read(byteArray, 0, Math.min(byteArray.length, remainingBytesToBeRead));
 
             if(j == -1){
-                break;
+                throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
             }
 
             buffer.write(byteArray, 0, j);
